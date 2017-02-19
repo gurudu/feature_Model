@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+	<featureModel chosenLayoutAlgorithm="1">
+		<struct>
+			<and abstract="true" mandatory="true" name="Root">
+				<and name="SmartHome">
+					<and name="media">
+						<feature name="internet"/>
+						<feature name="camera"/>
+						<feature name="audio"/>
+						<feature name="cellphone"/>
+					</and>
+					<feature name="HVAC_management"/>
+					<and name="illumination_management">
+						<feature name="manual_illumination"/>
+						<and name="automated_illumination">
+							<feature name="perimeter_illumination"/>
+							<feature name="in_house_illumination"/>
+						</and>
+					</and>
+					<feature name="windows_management"/>
+					<and name="security">
+						<feature name="sensor"/>
+						<feature name="intrusion_detection"/>
+						<feature name="alarm"/>
+						<and name="authentication_device">
+							<feature name="keypad"/>
+							<feature name="retina_scanner"/>
+							<feature name="fingerprint_reader"/>
+						</and>
+					</and>
+				</and>
+			</and>
+		</struct>
+		<constraints/>
+		<calculations Auto="true" Constraints="true" Features="true" Redundant="true" Tautology="true"/>
+		<comments/>
+		<featureOrder userDefined="false"/>
+	</featureModel>
