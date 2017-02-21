@@ -164,7 +164,7 @@ public class FP_NFP extends Application {
 				else
 					i = -j*20;
 				root.getChildren().add(
-						draw.drawText(380,150+i,7 ,null,null, 390, 141+i,0,featureList.get(j)));
+						draw.drawText(380,150+i,7 ,Color.BLACK,Color.WHITE, 390, 141+i,0,featureList.get(j)));
 			}
 			
 
