@@ -1,0 +1,240 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <style>
+      body {
+        margin: 0px;
+        padding: 0px;
+      }
+    </style>
+  </head>
+<body>
+<canvas id="myCanvas" width="1300" height="900" ></canvas>
+<script>
+var canvas = document.getElementById("myCanvas");
+var context = canvas.getContext("2d");
+
+var NODE_RADIUS = 8;
+var NODE_DIAMETER = NODE_RADIUS * 2;
+var EXCLUDES_ZONE = 190;
+var REQUIRES_ZONE = 90;
+var centerX = 0;
+var centerY = 0;
+  var EXCLUDES_COLOR = "rgb(255, 0, 0)";
+var REQUIRES_COLOR = "rgb(19, 166, 50)";
+var CENTRAL_FEATURE = "FeatureC";
+var FEATURE_NAMES = ["Feature1", "Feature2", "Feature3", "Feature4", "Feature5", "Feature6"];
+//var GIVEN = [1,0.87,0.625,0.375,0.13, 0];
+var GIVEN = [1, 0.99, 0.66, 0.375, 0.11, 0];
+var FORMALIZED_REQUIRES = [];
+var FORMALIZED_EXCLUDES = [];
+// Override values
+// DATA_HERE
+var NUMBER_OF_FEATURES = FEATURE_NAMES.length;
+context.save();
+context.translate(canvas.width / 2, canvas.height / 2);
+context.strokeStyle = '#000000';
+function quarterOfCircle(centerX,centerY,radius,startAngle,endAngle,fillColor){
+  var startAngle = startAngle * (Math.PI/180);
+  var endAngle   = endAngle   * (Math.PI/180);
+  context.beginPath();
+  context.moveTo(centerX,centerY);
+  context.arc(centerX,centerY,radius,startAngle,endAngle);
+  context.closePath();
+  context.fillStyle = fillColor;
+  context.strokeStyle = "white";
+   context.fill();
+   context.lineWidth = 2;
+   context.stroke();
+}
+//Functional features
+quarterOfCircle(0,0,227,270,90,"rgb(230, 185, 184)");
+//Quantitative
+quarterOfCircle(0,0,227,90,180,"rgb(158,197,213)");
+//Qualitative
+quarterOfCircle(0,0,227,180,270,"rgb(211,234,245)");
+
+function rectText(rectX,rectY,width,height,rectColor,text,textX,textY){
+    context.beginPath();
+    context.fillStyle = rectColor;
+    context.fillRect(rectX, rectY, width, height);
+    context.fill();
+    context.stroke();
+
+    context.beginPath();
+    context.fillStyle = 'black';
+    context.font = '12pt Calibri';
+    context.fillText(text,textX,textY);
+    context.fill();
+    context.stroke();
+ }
+
+function dashedLine(startX,startY,endX,endY){
+ context.setLineDash([5, 7]);
+ context.beginPath();
+ context.moveTo(startX,startY);
+ context.lineTo(endX,endY);
+ context.stroke();
+}
+function drawLine(startX,startY,endX,endY,lineColor,lineWidth){
+       context.beginPath();
+       context.moveTo(startX, startY);
+       context.lineTo(endX,endY);
+       context.lineWidth = lineWidth;
+       context.strokeStyle = lineColor;
+       context.stroke();
+}
+function drawArc(xPos, yPos,radius, startAngle, endAngle,anticlockwise,lineColor,fillColor,lineWidth){
+  var startAngle = startAngle * (Math.PI/180);
+  var endAngle   = endAngle   * (Math.PI/180);
+   context.beginPath();
+   context.arc(xPos, yPos,radius,startAngle, endAngle,anticlockwise);
+   context.fillStyle = fillColor;
+   context.strokeStyle = lineColor;
+   context.fill();
+   context.lineWidth = lineWidth;
+   context.stroke();
+}
+function drawText(text,textX,textY,font){
+  context.fillStyle = "black";
+  context.font = font;
+  context.fillText(text, textX, textY);
+}
+//RHS
+drawArc(centerX,  centerY,194,270,90, false, "white", "rgb(192, 0, 0)",6);
+drawArc(centerX, centerY,170, 270,90,false,  "white","rgb(253, 243, 173)",2);
+drawArc(centerX, centerY, 150, 270,90, false, "white",  "rgb(251, 235, 117)",2 );
+drawArc(centerX, centerY, 130, 270, 90, false,  "white", "rgb(248, 223, 36)",2);
+drawArc(centerX, centerY, 110, 270, 90, false,  "white", "rgb(217, 192, 7)",2);
+drawArc(centerX, centerY, 90, 270, 90, false,  "white", "rgb(0, 100, 45)",2);
+
+//LHS
+drawArc(centerX,  centerY,194,270,90, true, "white", "rgb(96, 74, 123)",6);
+drawArc(centerX, centerY,170, 270,90,true,  "white","rgb(124, 96, 158)",2);
+drawArc(centerX, centerY, 150, 270,90,true, "white",  "rgb(146, 122, 174)",2 );
+drawArc(centerX, centerY, 130, 270, 90, true,  "white", "rgb(165, 146, 188)",2);
+drawArc(centerX, centerY, 110, 270, 90, true,  "white", "rgb(191, 177, 207)",2);
+drawArc(centerX, centerY, 90, 270, 90,true,  "white", "rgb(211, 200, 222)",2);
+
+drawArc(centerX, centerY, 70, 0, 360,true,"black","white",2);
+
+drawLine(centerX,  centerY,centerX,centerY+235,"white",4);
+drawLine(centerX,  centerY,centerX,centerY-235,"white",4);
+drawLine(centerX,  centerY,centerX-235,centerY,"white",4);
+
+      // Text of central features
+      var centralName = CENTRAL_FEATURE;
+      var metrics = context.measureText(centralName);
+      var width = metrics.width;
+      drawText(centralName, -width/2, 0,'11pt Calibri');
+      var rotateRadio = Math.PI * 1/(NUMBER_OF_FEATURES*1.5);
+      var currentRotation = 0;
+    for (var i = 0; i < NUMBER_OF_FEATURES; i++) {
+      var fiPosition = 100;
+      if(GIVEN[i]==0){
+         fiPosition = EXCLUDES_ZONE - NODE_RADIUS-2;
+      } else if (GIVEN[i]==1){
+         fiPosition = REQUIRES_ZONE - NODE_RADIUS-2;
+      } else {
+         var totalSpace = (EXCLUDES_ZONE - NODE_RADIUS*3) - (REQUIRES_ZONE + NODE_RADIUS);
+         fiPosition = REQUIRES_ZONE + NODE_RADIUS + ((1-GIVEN[i]) * totalSpace);
+      }
+     drawArc(10,-fiPosition,NODE_RADIUS, 0, 360, false,"black","white",1);
+      if(FORMALIZED_REQUIRES.indexOf(FEATURE_NAMES[i]) > -1){
+        drawArc(10,-fiPosition,NODE_RADIUS-5, 0, 360, false,REQUIRES_COLOR,REQUIRES_COLOR,1);
+      }
+     if(FORMALIZED_EXCLUDES.indexOf(FEATURE_NAMES[i]) > -1){
+         drawArc(10,-fiPosition,NODE_RADIUS-5, 0, 360, false,EXCLUDES_COLOR,EXCLUDES_COLOR,1);
+      }
+      // feature name
+     context.fillStyle = 'black';
+      context.fillText(FEATURE_NAMES[i],10,-(fiPosition+NODE_DIAMETER));
+      currentRotation += rotateRadio;
+      context.rotate(rotateRadio);
+      }
+context.restore();
+drawText("Functional Features",945,360,'16pt Calibri');
+context.save();
+context.translate(canvas.width-360,canvas.height-530);
+context.beginPath();
+context.rect(0, 0,340,220);
+context.fillStyle = "white";
+context.fill();
+context.lineWidth = 1;
+context.strokeStyle="black";
+context.stroke();
+var rectY = 0;
+drawText("Zones", 20, 25,'14pt Calibri');
+drawText("Relation types", 170, 25,'14pt Calibri');
+rectY +=30 ;
+rectText(20,10+rectY,18,18,"rgb(0, 100, 45)",'Requires',44,53);
+rectY+=21;
+rectText(20,10+rectY,18,18,"rgb(217, 192, 7)","Encourages",44,25+rectY);
+rectY+=21;
+rectText(20,10+rectY,18,18,"rgb(248, 223, 36)","",44,25+rectY);
+rectY+=21;
+rectText(20,10+rectY,18,18,"rgb(251, 235, 117)","",44,25+rectY);
+rectY+=21;
+rectText(20,10+rectY,18,18,"rgb(253, 243, 173)","Discourages",44,25+rectY);
+rectY+=21;
+rectText(20,10+rectY,18,18,"rgb(192, 0, 0)","Excludes",44,25+rectY);
+
+
+drawArc(180,55,8,0,360,false,"black","white",1);
+drawArc(180,55,4,0,360,false,"black","grey",1);
+drawText("Formalized",193 , 60,'12pt Calibri');
+drawArc(180,80,8,0,360,false,"black","white",1);
+drawText("Undefined", 193, 85,'12pt Calibri');
+drawLine(64,88,70,80);
+drawLine(76,88,70,80);
+dashedLine(70,125,70,80);
+context.restore();
+
+context.save();
+context.translate(canvas.width-450,canvas.height-270);
+rectY = 0;
+rectText(10,10,25,18,"rgb(211,234,245)",'Qualitative NFPs',40,25);
+rectY+=23;
+rectText(10,10+rectY,25,18,"rgb(158,197,213)","Quantitative NFPs",40,25+rectY);
+rectY+=23;
+rectText(10,10+rectY,25,18,"rgb(230, 185, 184)","Functional Features",40,25+rectY);
+context.restore();
+drawText("Non-Functional Features",82,580,'16pt Calibri');
+context.save();
+context.translate(canvas.width-1220,canvas.height-300);
+
+context.beginPath();
+context.rect(0, 0,340,220);
+context.fillStyle = "white";
+context.fill();
+context.lineWidth = 1;
+context.strokeStyle="black";
+context.stroke();
+
+drawText("Qualitative", 20, 25,'14pt Calibri');
+drawText("Zones", 160, 25,'14pt Calibri');
+drawText("Quantitative", 230, 25,'14pt Calibri');
+rectY = 0;
+rectY +=30 ;
+
+rectText(165,15+rectY,18,18,"rgb(211, 200, 222)",'High positive',22,28+rectY);
+drawText("Low", 240, 60,'12pt Calibri');
+rectY+=21;
+rectText(165,15+rectY,18,18,"rgb(191, 177, 207)","Medium positive",22,28+rectY);
+rectY+=21;
+rectText(165,15+rectY,18,18,"rgb(165, 146, 188)","Low positive",22,28+rectY);
+rectY+=21;
+rectText(165,15+rectY,18,18,"rgb(146, 122, 174)","Low negative",22,28+rectY);
+rectY+=21;
+rectText(165,15+rectY,18,18,"rgb(124, 96, 158)","Medium negative",22,28+rectY);
+rectY+=21;
+rectText(165,15+rectY,18,18,"rgb(96, 74, 123)","High negative",22,28+rectY);
+drawText("High", 240, 165,'12pt Calibri');
+drawLine(242,143,250,150);
+drawLine(258,143,250,150);
+dashedLine(250,70,250,155);
+
+context.restore();
+</script>
+</body>
+</html>
