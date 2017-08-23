@@ -23,35 +23,70 @@
 		var width = 1300;
 		var height = 850;
 		var pi = Math.PI;
+		 //var predictions = [0.16,0.25,0.5];
+        //var Feature_Names = ["camera","audio","internet"];
+         var CENTRAL_FEATURE = "FeatureC";
+          var FEATURE_NAMES = ["Feature1", "Feature2", "Feature3","Feature4","Feature5", "Feature6"];
+         var PREDICTIONS = [ 0,0.2,0.5,0.6,0.8,1];
+         var FORMALIZED_REQUIRES = ["Feature1"];
+         var FORMALIZED_EXCLUDES = ["Feature4"];
+         var QUALITATIVE = ["security","preference","test"];
+         var QUANTITATIVE = ["cost","time","memory"];
+         var qualityLength = QUALITATIVE.length;
+         var quantityLength = QUANTITATIVE.length;
+         var NFPLength =  qualityLength + quantityLength;
+         var FPLength = FEATURE_NAMES.length ;
+         //from java
+         //var NFPS = ["cost","time","memory","security","preference"];
+         var QUANTITY_VALUES = [0.2,0.5,0.7];
+         var QUALITY_VALUES = [0.3,0.5,0.8];
+
+         var endAngleFP = FPLength*(360/(FPLength+NFPLength));
+
+
+         var quantityAngle = quantityLength*(360/(FPLength+NFPLength));
+         var endAngleQuantity = quantityAngle+endAngleFP
+         console.log(endAngleQuantity);
+          
+         var qualityAngle = qualityLength*(360/(FPLength+NFPLength));
+         var endAngleQuality = qualityAngle+endAngleQuantity;
+
+         var NODE_RADIUS = 10;
+         var p=0,rad=0;
+         var adjustLength=0,count=0,angle=0,circleCenter=[];
+         var centerX=0,centerY=0;
+     
+          var rotation = (endAngleFP/FPLength)-3;
+
 
 		var arcs = [
-		       {"color":"#E6B9B8","startAngle":0,"endAngle":180,"radius":256},
+		       {"color":"#E6B9B8","startAngle":0,"endAngle":endAngleFP,"radius":256},
 			   
-			   {"color":"#BCA600","startAngle":0,"endAngle":180,"radius":225},
-			   {"color":"#D9C007","startAngle":0,"endAngle":180,"radius":198},  
-			   {"color":"#F8DF24","startAngle":0,"endAngle":180,"radius":170},
-			   {"color":"#FBEB75","startAngle":0,"endAngle":180,"radius":142},
-			   {"color":"#FDF3AD","startAngle":0,"endAngle":180,"radius":114},
-			   {"color":"#FEF9D6","startAngle":0,"endAngle":180,"radius":86},
+			   {"color":"#BCA600","startAngle":0,"endAngle":endAngleFP,"radius":225},
+			   {"color":"#D9C007","startAngle":0,"endAngle":endAngleFP,"radius":198},  
+			   {"color":"#F8DF24","startAngle":0,"endAngle":endAngleFP,"radius":170},
+			   {"color":"#FBEB75","startAngle":0,"endAngle":endAngleFP,"radius":142},
+			   {"color":"#FDF3AD","startAngle":0,"endAngle":endAngleFP,"radius":114},
+			   {"color":"#FEF9D6","startAngle":0,"endAngle":endAngleFP,"radius":86},
 			   
-			   {"color":"#B9CDE5","startAngle":180,"endAngle":270,"radius":256},
+			   {"color":"#B9CDE5","startAngle":endAngleFP,"endAngle":endAngleQuantity,"radius":256},
 				   
 			  
-			   {"color":"#695185","startAngle":180,"endAngle":270,"radius":225},
-			   {"color":"#7C609E","startAngle":180,"endAngle":270,"radius":198},
-			   {"color":"#927AAE","startAngle":180,"endAngle":270,"radius":170},
-			   {"color":"#A594BC","startAngle":180,"endAngle":270,"radius":142},
-			   {"color":"#BFB1CF","startAngle":180,"endAngle":270,"radius":114},
-			   {"color":"#D3C8DE","startAngle":180,"endAngle":270,"radius":86},
+			   {"color":"#695185","startAngle":endAngleFP,"endAngle":endAngleQuantity,"radius":225},
+			   {"color":"#7C609E","startAngle":endAngleFP,"endAngle":endAngleQuantity,"radius":198},
+			   {"color":"#927AAE","startAngle":endAngleFP,"endAngle":endAngleQuantity,"radius":170},
+			   {"color":"#A594BC","startAngle":endAngleFP,"endAngle":endAngleQuantity,"radius":142},
+			   {"color":"#BFB1CF","startAngle":endAngleFP,"endAngle":endAngleQuantity,"radius":114},
+			   {"color":"#D3C8DE","startAngle":endAngleFP,"endAngle":endAngleQuantity,"radius":86},
 			   
-			   {"color":"#B7DEE8","startAngle":-90,"endAngle":0,"radius":256},
+			   {"color":"#B7DEE8","startAngle":endAngleQuantity,"endAngle":endAngleQuality,"radius":256},
 			  
-			   {"color":"#695185","startAngle":-90,"endAngle":0,"radius":225},
-			   {"color":"#7C609E","startAngle":-90,"endAngle":0,"radius":198},
-			   {"color":"#927AAE","startAngle":-90,"endAngle":0,"radius":170},
-			   {"color":"#A594BC","startAngle":-90,"endAngle":0,"radius":142},
-			   {"color":"#BFB1CF","startAngle":-90,"endAngle":0,"radius":114},
-			   {"color":"#D3C8DE","startAngle":-90,"endAngle":0,"radius":86}
+			   {"color":"#695185","startAngle":endAngleQuantity,"endAngle":endAngleQuality,"radius":225},
+			   {"color":"#7C609E","startAngle":endAngleQuantity,"endAngle":endAngleQuality,"radius":198},
+			   {"color":"#927AAE","startAngle":endAngleQuantity,"endAngle":endAngleQuality,"radius":170},
+			   {"color":"#A594BC","startAngle":endAngleQuantity,"endAngle":endAngleQuality,"radius":142},
+			   {"color":"#BFB1CF","startAngle":endAngleQuantity,"endAngle":endAngleQuality,"radius":114},
+			   {"color":"#D3C8DE","startAngle":endAngleQuantity,"endAngle":endAngleQuality,"radius":86}
 		];
 		var degree = Math.PI / 180; // just to convert the radian-numbers
 		var rectangleData = [
@@ -160,28 +195,12 @@
 								 .attr("y1", function (d) { return d.y1; })
 								 .attr("y2", function (d) { return d.y2; })
 								 .attr("class",function (d) { return d.class; });
-        //var predictions = [0.16,0.25,0.5];
-        //var Feature_Names = ["camera","audio","internet"];
-         var CENTRAL_FEATURE = "FeatureC";
-          var FEATURE_NAMES = ["Feature1", "Feature2", "Feature3","Feature4","Feature5", "Feature6","Feature7"];
-         var PREDICTIONS = [ 0,0.2,0.5,0.6,0.8,1,1];
-         var FORMALIZED_REQUIRES = ["Feature1"];
-         var FORMALIZED_EXCLUDES = ["Feature4"];
-         var QUALITATIVE = ["security","preference"];
-         var QUANTITATIVE = ["cost","time","memory"];
-         //from java
-         //var NFPS = ["cost","time","memory","security","preference"];
-         var QUANTITY_VALUES = [0.2,0.5,0.7];
-         var QUALITY_VALUES = [0.3,0.5];
-         var NODE_RADIUS = 10;
-         var p=0,rad=0;
-         var adjustLength=0,count=0,angle=0,circleCenter=[];
-         var centerX=0,centerY=0;
-        curves.append("text")
+
+      curves.append("text")
 		  .attr('y', 0)
 		  .attr('x', -20)
 		  .text(CENTRAL_FEATURE);	
-
+    
 
    insertProps( FEATURE_NAMES,PREDICTIONS );    
    p = 0;
@@ -271,7 +290,8 @@
                          adjustLength=0;
                        }
      
-               angle = (p / numNodes*val) * Math.PI*mul; 
+                angle = p*(Math.PI/180)*rotation;
+               //angle = (p / 11*val) * Math.PI*mul; 
                         centerX = (rad * Math.sin(angle)+adjustLength)*locationX;
                         centerY = (rad * Math.cos(angle))*locationY ; 
                         p+=1; 
