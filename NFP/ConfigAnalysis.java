@@ -40,6 +40,7 @@ public class ConfigAnalysisUtils {
 	public static boolean[][] getConfigsMatrix(IFeatureProject featureProject, List<String> featureList) throws CoreException {
 		Collection<IFile> configs = new ArrayList<IFile>();
 		Collection<IFile> predicts = new ArrayList<IFile>();
+		
 		// check that they are config files
 		IFolder configsFolder = featureProject.getConfigFolder();
 		for (IResource res : configsFolder.members()) {
@@ -50,30 +51,10 @@ public class ConfigAnalysisUtils {
 					predicts.add((IFile) res);
 				}
 			}
-		}
-		//IFile file = ResourcesPlugin.getWorkspace().getRoot().getFile((IPath) Paths.get(((IResource) predicts).getLocationURI()));
-		//
-       // System.out.println(((IResource) predicts).getLocationURI());
+		}   
+		
+		computeFeaturePredictions(predicts);
         
-        for (IFile predict : predicts) {
-        	try {
-				java.io.InputStream is=predict.getContents();
-				byte[] b=new byte[is.available()];
-				is.read(b);
-				is.close();
-				String fulltext = new String(b);
-				String[] a = fulltext.split("\\r?\\n");
-				List<String> alist =  Arrays.asList(a);
-				for (String t : alist) {
-					System.out.println(t);
-				}
-				System.out.println("File contents are "+alist);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-         
-        }
 		boolean[][] matrix = new boolean[configs.size()][featureList.size()];
 		int iconf = 0;
 		for (IFile config : configs) {
@@ -93,6 +74,48 @@ public class ConfigAnalysisUtils {
 		return matrix;
 	}
 
+	public static Object[] computeFeaturePredictions(Collection<IFile> predicts){
+		List<String> PREDICTIONS = new ArrayList<String>();
+		List<String> FeatureProps = new ArrayList<String>();
+		List<String> FeatureValues = new ArrayList<String>();
+		for (IFile predict : predicts) {
+        	try {
+				java.io.InputStream is=predict.getContents();
+				byte[] b=new byte[is.available()];
+				is.read(b);
+				is.close();
+				String fulltext = new String(b);
+				String[] a = fulltext.split("\\r?\\n");
+		
+				for (String t : a) {
+					String[] s1 = t.split(":");
+					for (String p : s1) {
+						PREDICTIONS.add(p);
+					}
+				}
+			  System.out.println("File contents are "+ PREDICTIONS);
+				for(int i=0;i<PREDICTIONS.size();i++){
+					String b1 = PREDICTIONS.get(i);
+					if(i%2==0){
+						FeatureProps.add(b1);
+					}else{	
+						FeatureValues.add(b1);
+					}
+				}	
+				System.out.println("File contents are "+ FeatureProps);
+				System.out.println("File contents are "+ FeatureValues);
+				
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (CoreException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+         
+        }
+		return new Object[]{ FeatureProps, FeatureValues };
+	}
 	/**
 	 * No core nor hidden features
 	 * 
