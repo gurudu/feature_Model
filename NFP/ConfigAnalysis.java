@@ -71,11 +71,12 @@ public class ConfigAnalysisUtils {
 		return matrix;
 	}
 
-	public static Object[] computeFeaturePredictions(IFeatureProject featureProject) throws CoreException{
+	public static Object[] computeFeaturePredictions(IFeatureProject featureProject, IFeature fc) throws CoreException{
 		
 		List<String> PREDICTIONS = new ArrayList<String>();
 		List<String> FeatureProps = new ArrayList<String>();
 		List<String> FeatureValues = new ArrayList<String>();
+		List<String> relatedFeatureValues = new ArrayList<String>();
 		Collection<IFile> predicts = new ArrayList<IFile>();
 		
 	    IFolder configsFolder = featureProject.getConfigFolder();
@@ -83,32 +84,30 @@ public class ConfigAnalysisUtils {
 	    Configuration configuration = new Configuration(featureModel);
 		FileHandler.load(Paths.get(featureProject.getCurrentConfiguration().getLocationURI()), configuration, new DefaultFormat());
 		List<IFeature> childF = new ArrayList<>();
-		List<IFeature> unselectedFeatures = configuration.getUndefinedSelectedFeatures();
-		System.out.println("abstract unselected array before filtering"+unselectedFeatures);
-		for(IFeature f: unselectedFeatures) {
-			if((FeatureUtils.isAbstract(f)) && (FeatureUtils.hasChildren(f))){
-				Iterable<IFeature> j = (Iterable<IFeature>) FeatureUtils.getChildren(f).iterator();
+	
+		List<String> relatedFeatures = computeWidgetFeatures(featureProject);
+		List<IFeature> inactivatedFeatures = configuration.getUnSelectedFeatures();
+		System.out.println("inactivated features"+inactivatedFeatures);
+			Iterable<IFeature> j = (Iterable<IFeature>) FeatureUtils.getChildren(fc).iterator();
+			if(FeatureUtils.hasChildren(fc)){	
 				for (int i = 0; ((Iterator<IFeature>) j).hasNext(); i++)
 		        {
 					Object next = ((Iterator<IFeature>) j).next();
-					childF.add((IFeature) next);
-					
+					childF.add((IFeature) next);	
 		        }
 			}
-		}
 		System.out.println("abstract child array"+childF);
-		unselectedFeatures.removeAll(childF);
-			for(int i=0;i<childF.size();i++){
+		childF.removeAll(inactivatedFeatures);
+		 /*for(int i=0;i<childF.size();i++){
 				if(unselectedFeatures.contains(childF.get(i))){
 					unselectedFeatures.remove(i);
-					System.out.println(i);
-		
+				
 				}
-		  }	
-		System.out.println("abstract undefined array after filtering"+unselectedFeatures);
-		System.out.println("unselected(inactive) Features from Feature Model "+configuration.getUnSelectedFeatures());
-		
-		
+		 }	*/
+		relatedFeatures.remove(fc.getName());
+		for(IFeature f : childF){
+			relatedFeatures.add(f.getName());
+		}
 		for (IResource res : configsFolder.members()) {
 			if (res instanceof IFile) {
 				if (((IFile) res).getName().endsWith(".txt")) {
@@ -132,7 +131,6 @@ public class ConfigAnalysisUtils {
 						PREDICTIONS.add(p);
 					}
 				}
-			  System.out.println("File contents are "+ PREDICTIONS);
 				for(int i=0;i<PREDICTIONS.size();i++){
 					String b1 = PREDICTIONS.get(i);
 					if(i%2==0){
@@ -140,17 +138,20 @@ public class ConfigAnalysisUtils {
 					}else{	
 						FeatureValues.add(b1);
 					}
-				}	
-				//System.out.println("File contents are "+ FeatureProps);
-				//System.out.println("File contents are "+ FeatureValues);
-				
+				}			
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} 
-         
         }
-		return new Object[]{ FeatureProps, FeatureValues };
+	  for(String f: relatedFeatures){	
+		for(int i=0; i< FeatureProps.size(); i++){
+			if(FeatureProps.get(i).equals(f)){
+				relatedFeatureValues.add(FeatureValues.get(i));
+			}
+		}
+	  }	
+		return new Object[]{ relatedFeatures,relatedFeatureValues };
 	}
 	/**
 	 * No core nor hidden features
@@ -173,5 +174,40 @@ public class ConfigAnalysisUtils {
 			featureList.remove(hiddenf.getName());
 		}
 		return featureList;
+	}
+
+	public static List<String> computeWidgetFeatures(IFeatureProject featureProject) {
+		// TODO Auto-generated method stub
+		IFeatureModel featureModel = featureProject.getFeatureModel();
+	    Configuration configuration = new Configuration(featureModel);
+		FileHandler.load(Paths.get(featureProject.getCurrentConfiguration().getLocationURI()), configuration, new DefaultFormat());
+		List<IFeature> childF = new ArrayList<>();
+		List<String> widgetFeatures = new ArrayList<>();
+		List<IFeature> unselectedFeatures = configuration.getUndefinedSelectedFeatures();
+		System.out.println("abstract unselected array before filtering"+unselectedFeatures);
+		for(IFeature f: unselectedFeatures) {
+			Iterable<IFeature> j = (Iterable<IFeature>) FeatureUtils.getChildren(f).iterator();
+			if(FeatureUtils.hasChildren(f)){	
+				for (int i = 0; ((Iterator<IFeature>) j).hasNext(); i++)
+		        {
+					Object next = ((Iterator<IFeature>) j).next();
+					childF.add((IFeature) next);	
+		        }
+			}
+			
+		}
+		System.out.println("abstract child array"+childF);
+		unselectedFeatures.removeAll(childF);
+		 /*for(int i=0;i<childF.size();i++){
+				if(unselectedFeatures.contains(childF.get(i))){
+					unselectedFeatures.remove(i);
+				
+				}
+		 }	*/	
+		System.out.println("abstract undefined array after filtering"+unselectedFeatures);
+		for(IFeature f : unselectedFeatures) {
+			widgetFeatures.add(f.getName());
+		}
+		return widgetFeatures;
 	}
 }
