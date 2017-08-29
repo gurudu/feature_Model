@@ -35,7 +35,11 @@ import de.ovgu.featureide.fm.core.io.manager.ConfigurationManager;
 import de.ovgu.featureide.fm.core.io.manager.FileHandler;
 import de.ovgu.featureide.fm.ui.handlers.base.ASelectionHandler;
 
-
+/**
+ * Show Feature Relations Graph
+ * 
+ * @author Hari
+ */
 public class ShowFeatureRelationsGraphCommandHandler extends ASelectionHandler {
 	
 
@@ -56,7 +60,9 @@ public class ShowFeatureRelationsGraphCommandHandler extends ASelectionHandler {
 		shell.setLayout(new FillLayout(SWT.VERTICAL));
 		final org.eclipse.swt.widgets.List list = new org.eclipse.swt.widgets.List(shell, SWT.BORDER | SWT.V_SCROLL);
 
-		List<String> featureList = ConfigAnalysisUtils.getNoCoreNoHiddenFeatures(featureProject);
+		//List<String> featureList = ConfigAnalysisUtils.getNoCoreNoHiddenFeatures(featureProject);
+		
+		List<String> featureList = ConfigAnalysisUtils.computeWidgetFeatures(featureProject);
 		for (String f : featureList) {
 			list.add(f);
 		}
@@ -65,7 +71,12 @@ public class ShowFeatureRelationsGraphCommandHandler extends ASelectionHandler {
 			
 			public void widgetSelected(SelectionEvent event) {
 				int[] selections = list.getSelectionIndices();
-				showFrog(featureProject, list.getItem(selections[0]));
+				try {
+					showFrog(featureProject, list.getItem(selections[0]));
+				} catch (CoreException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 
 			public void widgetDefaultSelected(SelectionEvent event) {
@@ -78,7 +89,7 @@ public class ShowFeatureRelationsGraphCommandHandler extends ASelectionHandler {
 	}
 
 	// P(i|currentI)
-	public static double getGivenOperation(boolean[][] matrix, int currentI, int i) {
+	/*public static double getGivenOperation(boolean[][] matrix, int currentI, int i) {
 		double numerator = 0;
 		double denominator = 0;
 		for (int conf = 0; conf < matrix.length; conf++) {
@@ -93,15 +104,16 @@ public class ShowFeatureRelationsGraphCommandHandler extends ASelectionHandler {
 			return 0;
 		}
 		return numerator / denominator;
-	}
+	}*/
 
 	/**
 	 * Show frog
 	 * 
 	 * @param featureProject
 	 * @param featureCenter
+	 * @throws CoreException 
 	 */
-	public static void showFrog(IFeatureProject featureProject, String featureCenter) {
+	public static void showFrog(IFeatureProject featureProject, String featureCenter) throws CoreException {
 
 		// Get feature in the center
 		IFeatureModel featureModel = featureProject.getFeatureModel();
@@ -128,13 +140,14 @@ public class ShowFeatureRelationsGraphCommandHandler extends ASelectionHandler {
 			e.printStackTrace();
 		}
 		
-		Configuration configuration = new Configuration(featureModel);
-		FileHandler.load(Paths.get(featureProject.getCurrentConfiguration().getLocationURI()), configuration, new DefaultFormat());
+		
+		/*Configuration configuration = new Configuration(featureModel);
+		
 		
 		List<SelectableFeature> featureArray = configuration.getFeatures();
 		
 	    System.out.println(featureModel.getFeatures());
-		System.out.println(featureArray);
+		System.out.println(featureArray);*/
 	
 		/*for(IFeature f1: featureArray){
             if(FeatureUtils.getDescription(f1) != null){
@@ -145,37 +158,19 @@ public class ShowFeatureRelationsGraphCommandHandler extends ASelectionHandler {
 	
 		//System.out.println("unselected Features from Feature Model"+configuration.getUnSelectedFeatures());
 		//System.out.println("undefined Features from Feature Model"+configuration.getUndefinedSelectedFeatures());
-		List<IFeature> childF = new ArrayList<>();
-		List<IFeature> unselectedArray = configuration.getUndefinedSelectedFeatures();
-		List<IFeature> unselectedArray11 = new ArrayList<IFeature>();
-		unselectedArray11.addAll(unselectedArray);
-		System.out.println(unselectedArray);
-		for(IFeature f: unselectedArray){
-			
-			if((FeatureUtils.isAbstract(f)) && (FeatureUtils.hasChildren(f))){
-				
-				//System.out.println(f.getStructure());
-				//unselectedArray11.remove(f.getName());
-				Iterable<IFeature> j = (Iterable<IFeature>) FeatureUtils.getChildren(f).iterator();
-				for (int i = 0; ((Iterator<IFeature>) j).hasNext(); i++)
-		        {
-					Object next = ((Iterator<IFeature>) j).next();
-					childF.add((IFeature) next);
-		        }
-					
-			}
-			
-		}
 		
-		System.out.println(childF);
-		
-		//System.out.println(FeatureUtils.getDescription(fc));
+		Object[] FeaturePredicts = ConfigAnalysisUtils.computeFeaturePredictions(featureProject,fc);
+		List<String> relatedFeatures = (List<String>)FeaturePredicts[0];
+		List<String> relatedFeatureValues = (List<String>)FeaturePredicts[1];
+		System.out.println("Related features"+relatedFeatures);
+		System.out.println("Related Features predictions"+relatedFeatureValues);
+	
 		
 		Object[] NFPCenter = NFP.computeNFP(featureProject,fc);
 		List<String> NFP = (List<String>)NFPCenter[0];
 		List<String> NFP_VALUES = (List<String>)NFPCenter[1];
-		System.out.println(NFP);
-		System.out.println(NFP_VALUES);
+		System.out.println("NFP props"+NFP);
+		System.out.println("NFP values"+NFP_VALUES);
 		//List<Integer> NFPcost = NFP.computeQuantity(featureProject,featureArray);
 		//System.out.println(NFPcost);
 	/*HashMap<String,Integer> NFPHash = new HashMap<String,Integer>();
@@ -208,26 +203,43 @@ public class ShowFeatureRelationsGraphCommandHandler extends ASelectionHandler {
 	 
 		StringBuffer data = new StringBuffer(" CENTRAL_FEATURE = \"");
 		data.append(featureCenter);
-		System.out.println(data);
 		data.append("\";\n FEATURE_NAMES = [");
-		for (String f : featureList) {
-			if (!f.equals(featureCenter)) {
-				data.append("\"");
-				data.append(f);
-				data.append("\",");
+		 if(relatedFeatures.size()>0){
+			for (String f : relatedFeatures) {
+					data.append("\"");
+					data.append(f);
+					data.append("\",");
+				
 			}
+			data.setLength(data.length() - 1); // remove last comma
+		 }
+		data.append("];\n NFP = [");
+		 if(NFP.size()>0){
+				for (String f : NFP) {
+					data.append("\"");
+					data.append(f);
+					data.append("\",");
+				}
+	    data.setLength(data.length() - 1); // remove last comma
 		}
-		data.setLength(data.length() - 1); // remove last comma
-		data.append("];\n GIVEN = [");
-		for (String f : featureList) {
-			if (!f.equals(featureCenter)) {
-				int i = featureList.indexOf(f);
-				int ic = featureList.indexOf(featureCenter);
-				data.append(getGivenOperation(matrix, ic, i));
-				data.append(",");
+	   data.append("];\n NFP_VALUES = [");
+	    if(NFP_VALUES.size()>0){	
+			for (String f : NFP_VALUES) {
+					data.append("\"");
+					data.append(f);
+					data.append("\",");			
 			}
-		}
-		data.setLength(data.length() - 1); // remove last comma
+			data.setLength(data.length() - 1); // remove last comma	 
+	    }
+	   data.append("];\n PREDICTIONS = [");
+	    if(relatedFeatureValues.size()>0){
+			for (String f : relatedFeatureValues) {
+				    data.append("\"");
+					data.append(f);
+					data.append("\",");
+			}
+	      data.setLength(data.length() - 1); // remove last comma
+	    }
 		boolean atLeastOne = false;
 		data.append("];\n FORMALIZED_REQUIRES = [");
 		for (String f : formalizedRequires) {
@@ -251,34 +263,10 @@ public class ShowFeatureRelationsGraphCommandHandler extends ASelectionHandler {
 			data.setLength(data.length() - 1); // remove last comma
 		}
 		atLeastOne = false;
-	  if(NFP.size()>0){
-		data.append("];\n NFP = [");
-		for (String f : NFP) {
-			data.append("\"");
-			data.append(f);
-			data.append("\",");
-			atLeastOne = true;
-		}
-	  
-		if (atLeastOne) {
-			data.setLength(data.length() - 1); // remove last comma
-		}
-		atLeastOne = false;
-	  }	
-	  if(NFP_VALUES.size()>0){
-		data.append("];\n NFP_VALUES = [");
-		for (String f : NFP_VALUES) {
-			data.append("\"");
-			data.append(f);
-			data.append("\",");
-			atLeastOne = true;
-		}
-		if (atLeastOne) {
-			data.setLength(data.length() - 1); // remove last comma
-		}
-		atLeastOne = false;
-	   }	
+	 
 		data.append("];\n");
+		
+		System.out.println(data.toString());
 
 		File fi = Utils.getFileFromPlugin("de.ovgu.featureide.visualisation", "template/featureRelations/page.html");
 		String html = Utils.getStringOfFile(fi);
