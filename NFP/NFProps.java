@@ -1,17 +1,18 @@
 package de.ovgu.featureide.visualisation;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 import de.ovgu.featureide.core.IFeatureProject;
 import de.ovgu.featureide.fm.core.base.FeatureUtils;
 import de.ovgu.featureide.fm.core.base.IFeature;
+import de.ovgu.featureide.fm.core.base.IFeatureModel;
 
-public class NFP {
-	 //static List<Integer> NFPcostArray = new ArrayList<Integer>();
-	 //static List<Integer> NFPtimeArray = new ArrayList<Integer>();
-     //static List<Integer> NFPmemoryArray = new ArrayList<Integer>();
-	
+public class NFProps {
+
 	public  static Object[] computeNFP(IFeatureProject featureProject, IFeature fc){
 		//List<IFeature> li =  new ArrayList<IFeature>();
 		
@@ -20,147 +21,97 @@ public class NFP {
 		 //List<Float> NFPtime = new ArrayList<Float>();
 	     //List<Float> NFPmemory = new ArrayList<Float>();
 	 	List<String> NFPFeature = new ArrayList<String>();
-		List<String> NFProps = new ArrayList<String>();
+		List<String> nfp = new ArrayList<String>();
 		List<String> NFPValues = new ArrayList<String>();
+		int quantityCount = 0;
+		HashMap<String, String> keyWithMinMax = computeQuantity(featureProject);
 		
-
-		String[] str = FeatureUtils.getDescription(fc).split(",");
-	
+		String[] str = FeatureUtils.getDescription(fc).split("\\r?\\n");
 		for(String a : str){
-			String[] st = a.split(",");
-			for(String b : st){
-				String[] s1 = b.split("=");
-				for(String c : s1){	
-					 NFPFeature.add(c);					
+			String[] st = a.split(":");
+			
+			nfp.add(st[0]);
+			
+			if(isNumeric(st[1])) {
+				if(keyWithMinMax.containsKey(st[0])){
+					NFPValues.add(normalize(Double.parseDouble(st[1]), keyWithMinMax.get(st[0])));
 				}
+			}else{
+				NFPValues.add(getEquivalentNumber(st[1]));
 			}
 		}
-		for(int i=0;i<NFPFeature.size();i++){
-			String b = NFPFeature.get(i);
-			if(i%2==0){
-			  NFProps.add(b);
-			}else{	
-				if( b.equals("HighP")){
-					String b1 = b.replaceAll("HighP","0.925");
-					NFPValues.add(b1);
-			   }else if(b.equals("MedP")){
-				   String b2 = b.replaceAll("MedP","0.765");
-					NFPValues.add(b2);  
-			   }else if (b.equals("LowP")){
-				   String b3 = b.replaceAll("LowP","0.595");
-					NFPValues.add(b3);   
-			   }else if (b.equals("LowN")){
-				   String b4 = b.replaceAll("LowN","0.425");
-					NFPValues.add(b4); 
-			   }else if (b.equals("MedN")){
-				   String b5 = b.replaceAll("MedN","0.255");
-					NFPValues.add(b5); 
-			   }else if(b.equals("HighN")){
-				   String b6 = b.replaceAll("HighN","0.085");
-					NFPValues.add(b6);   
-			   }else{
-				NFPValues.add(NFPFeature.get(i));
-			   }
-				
-			}
-		}
-		/*if( (NFProps.size()>0) && (NFPValues.size()>0)){
-			for(int i=0;i<NFProps.size();i++){
-				String s1 = NFProps.get(i);
-				String c = NFPValues.get(i);
-			   if( s1.equals("cost")){
-					NFPcost.add(Float.valueOf(c));
-			   }else if(s1.equals("time")){
-					NFPtime.add(Float.valueOf(c)); 
-			   }else if(s1.equals("memory")){
-					NFPmemory.add(Float.valueOf(c)); 
-			   }else{
-				   System.out.println("other quality props");
-			   }	
-			}
-	    }*/
-		
-		 //System.out.println("Arrays value "+ NFPcost);
-		 //System.out.println("Arrays value "+ NFPtime);
-		 //System.out.println("Arrays value "+ NFPmemory);
-
-		return new Object[]{NFProps, NFPValues};
-	   
+		return new Object[]{nfp, NFPValues,quantityCount};
 	  }	
 	
-	/*public  static List<Integer> computeQuantity(IFeatureProject featureProject, List<IFeature> featureArray ){
-		//List<IFeature> li =  new ArrayList<IFeature>();
-		
-	   //for(IFeature s : featureArray)	{
-		
-	 	List<String> NFPFeature = new ArrayList<String>();
-		List<String> NFProps = new ArrayList<String>();
-		List<String> NFPValues = new ArrayList<String>();
-      for(IFeature f : featureArray){
-       if(FeatureUtils.getDescription(f) != null){
-		String[] str = FeatureUtils.getDescription(f).split(",");
 	
-		for(String a : str){
-			String[] st = a.split(",");
-			for(String b : st){
-				String[] s1 = b.split("=");
-				for(String c : s1){	
-					 NFPFeature.add(c);					
+	private static String getEquivalentNumber(String b){
+		String result = null;
+		if( b.equals("HighP")){
+			result = "0.925";
+	   }else if(b.equals("MedP")){
+		   result = "0.765";
+	   }else if (b.equals("LowP")){
+			result = "0.595";
+	   }else if (b.equals("LowN")){
+			result = "0.595"; 
+	   }else if (b.equals("MedN")){
+			result = "0.255";
+	   }else if(b.equals("HighN")){
+			result = "0.085";
+	   }
+		return result;
+	}
+	
+	private static String normalize(double actual, String strMinMax){
+		String[] minMax = strMinMax.split("-");
+		double result = 0D;
+		if(minMax.length == 2 
+				&& (Double.parseDouble( minMax[0]) != Double.parseDouble( minMax[1]))){
+				result = 	(actual - Double.parseDouble(minMax[0]))/((Double.parseDouble(minMax[1]) - Double.parseDouble(minMax[0])));
+		}
+		return result+"";
+		
+	}
+	
+	public static boolean isNumeric(String str)
+	{
+	  return str.matches("-?\\d+(\\.\\d+)?");  //match a number with optional '-' and decimal.
+	}
+	
+	public static HashMap<String, String> computeQuantity(IFeatureProject featureProject) {
+		IFeatureModel featureModel = featureProject.getFeatureModel();
+		HashMap<String, List<Double>> NFPHash = new HashMap<>();
+		List<Double> valueList = null;
+		HashMap<String, String> keyWithMinMax = new HashMap<>();
+
+		for (IFeature f : featureModel.getFeatures()) {
+			if (FeatureUtils.getDescription(f) != null) {
+				String[] eachLine = FeatureUtils.getDescription(f).split("\\r?\\n");
+				for (String a : eachLine) {
+					String[] keyValStr = a.split(":");
+					if(keyValStr.length==2 && isNumeric(keyValStr[1])){
+						if(NFPHash.containsKey(keyValStr[0])) {
+							NFPHash.get(keyValStr[0]).add(Double.parseDouble(keyValStr[1]));
+						}
+						else{
+							valueList = new ArrayList<>();
+							valueList.add(Double.parseDouble(keyValStr[1]));
+							NFPHash.put(keyValStr[0], valueList);
+						}
+					}
 				}
 			}
+
 		}
-		for(int i=0;i<NFPFeature.size();i++){
-			String b = NFPFeature.get(i);
-			if(i%2==0){
-			  NFProps.add(b);
-			}else{	
-				if( b.equals("HighP")){
-					String b1 = b.replaceAll("HighP","0.925");
-					NFPValues.add(b1);
-			   }else if(b.equals("MedP")){
-				   String b2 = b.replaceAll("MedP","0.765");
-					NFPValues.add(b2);  
-			   }else if (b.equals("LowP")){
-				   String b3 = b.replaceAll("LowP","0.595");
-					NFPValues.add(b3);   
-			   }else if (b.equals("LowN")){
-				   String b4 = b.replaceAll("LowN","0.425");
-					NFPValues.add(b4); 
-			   }else if (b.equals("MedN")){
-				   String b5 = b.replaceAll("MedN","0.255");
-					NFPValues.add(b5); 
-			   }else if(b.equals("HighN")){
-				   String b6 = b.replaceAll("HighN","0.085");
-					NFPValues.add(b6);   
-			   }else{
-				NFPValues.add(NFPFeature.get(i));
-			   }
-				
-			}
-		}
-		if( (NFProps.size()>0) && (NFPValues.size()>0)){
-			for(int i=0;i<NFProps.size();i++){
-				String s1 = NFProps.get(i);
-				String c = NFPValues.get(i);
-			   if( s1.equals("cost")){
-					NFPcostArray.add(Integer.valueOf(c));
-			   }else if(s1.equals("time")){
-					NFPtimeArray.add(Integer.valueOf(c)); 
-			   }else if(s1.equals("memory")){
-					NFPmemoryArray.add(Integer.valueOf(c)); 
-			   }else{
-				   System.out.println("other quality props");
-			   }	
-			}
-	    }	
-      }	
 		
-      }
-      System.out.println("Arrays value "+ NFPcostArray);
-		System.out.println("Arrays value "+ NFPtimeArray);
-		System.out.println("Arrays value "+ NFPmemoryArray);
-		System.out.println("Arrays value "+ NFPValues);
-		return NFPcostArray;
-	   
-	  }		*/
+		for(String key : NFPHash.keySet()){
+			Collections.sort(NFPHash.get(key));
+			keyWithMinMax.put(key, NFPHash.get(key).get(0)+"-"+(NFPHash.get(key).size()==1 ?  NFPHash.get(key).get(0) : NFPHash.get(key).get(NFPHash.get(key).size()-1)));
+		}
+		
+		System.out.println("Each property with min and max values");
+		System.out.println(keyWithMinMax);
+		return keyWithMinMax;
+
+	  }		
 }
