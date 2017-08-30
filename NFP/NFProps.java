@@ -1,7 +1,6 @@
 package de.ovgu.featureide.visualisation;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -11,16 +10,15 @@ import de.ovgu.featureide.fm.core.base.FeatureUtils;
 import de.ovgu.featureide.fm.core.base.IFeature;
 import de.ovgu.featureide.fm.core.base.IFeatureModel;
 
+
+/**
+ * NFProps
+ * 
+ * @author Hari Kumar Gurudu
+ */
 public class NFProps {
 
 	public  static Object[] computeNFP(IFeatureProject featureProject, IFeature fc){
-		//List<IFeature> li =  new ArrayList<IFeature>();
-		
-	   
-		 //List<Float> NFPcost = new ArrayList<Float>();
-		 //List<Float> NFPtime = new ArrayList<Float>();
-	     //List<Float> NFPmemory = new ArrayList<Float>();
-	 	List<String> NFPFeature = new ArrayList<String>();
 		List<String> nfp = new ArrayList<String>();
 		List<String> NFPValues = new ArrayList<String>();
 		int quantityCount = 0;
@@ -33,6 +31,7 @@ public class NFProps {
 			nfp.add(st[0]);
 			
 			if(isNumeric(st[1])) {
+				quantityCount++;
 				if(keyWithMinMax.containsKey(st[0])){
 					NFPValues.add(normalize(Double.parseDouble(st[1]), keyWithMinMax.get(st[0])));
 				}
@@ -108,10 +107,6 @@ public class NFProps {
 			Collections.sort(NFPHash.get(key));
 			keyWithMinMax.put(key, NFPHash.get(key).get(0)+"-"+(NFPHash.get(key).size()==1 ?  NFPHash.get(key).get(0) : NFPHash.get(key).get(NFPHash.get(key).size()-1)));
 		}
-		
-		System.out.println("Each property with min and max values");
-		System.out.println(keyWithMinMax);
 		return keyWithMinMax;
-
 	  }		
 }
