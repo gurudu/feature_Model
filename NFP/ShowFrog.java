@@ -38,7 +38,7 @@ import de.ovgu.featureide.fm.ui.handlers.base.ASelectionHandler;
 /**
  * Show Feature Relations Graph
  * 
- * @author Hari
+ * @author jabier.martinez
  */
 public class ShowFeatureRelationsGraphCommandHandler extends ASelectionHandler {
 	
@@ -141,21 +141,17 @@ public class ShowFeatureRelationsGraphCommandHandler extends ASelectionHandler {
 		}
 		
 		
-		/*Configuration configuration = new Configuration(featureModel);
+		Configuration configuration = new Configuration(featureModel);
 		
 		
 		List<SelectableFeature> featureArray = configuration.getFeatures();
 		
+		
 	    System.out.println(featureModel.getFeatures());
-		System.out.println(featureArray);*/
-	
-		/*for(IFeature f1: featureArray){
-            if(FeatureUtils.getDescription(f1) != null){
-            	
-            	System.out.println("Hallo "+f1);
-            }
-		}*/
-	
+		System.out.println(featureArray);
+		System.out.println("get Feature Model"+configuration.getFeatureModel());
+		System.out.println("get Feature Model"+configuration.getSelectedFeatureNames());
+		System.out.println("get Feature Model"+configuration.getSelectedFeatures());
 		//System.out.println("unselected Features from Feature Model"+configuration.getUnSelectedFeatures());
 		//System.out.println("undefined Features from Feature Model"+configuration.getUndefinedSelectedFeatures());
 		
@@ -166,43 +162,30 @@ public class ShowFeatureRelationsGraphCommandHandler extends ASelectionHandler {
 		System.out.println("Related Features predictions"+relatedFeatureValues);
 	
 		
-		Object[] NFPCenter = NFP.computeNFP(featureProject,fc);
+		Object[] NFPCenter = NFProps.computeNFP(featureProject,fc);
 		List<String> NFP = (List<String>)NFPCenter[0];
 		List<String> NFP_VALUES = (List<String>)NFPCenter[1];
+		int quantityCount = (int) NFPCenter[2];
 		System.out.println("NFP props"+NFP);
 		System.out.println("NFP values"+NFP_VALUES);
-		//List<Integer> NFPcost = NFP.computeQuantity(featureProject,featureArray);
-		//System.out.println(NFPcost);
-	/*HashMap<String,Integer> NFPHash = new HashMap<String,Integer>();
-	for(int i=0;i<NFPCenter.size()-1;i++){
-		if(i%2==0){
-		NFPHash.put(NFPCenter.get(i),Integer.valueOf(NFPCenter.get(i+1)));
-		}
-	}
-	System.out.println(NFPHash);
-	System.out.println(NFPHash.get("cost"));
-	System.out.println(NFPHash.get("security"));*/
-	    //System.out.println(configuration.getSelectedFeatureNames());
+		System.out.println("NFP values"+quantityCount);
 		
-		// Here we create the text with the data to be inserted in the html page
-
-		// var CENTRAL_FEATURE = "Feature C";
+		NFProps.computeQuantity(featureProject);
 		
-		//var QUALITATIVE = ["security","preference"];
-	    // var QUALITY_VALUES = [0.3,0.5];
-		
-        //var QUANTITATIVE = ["cost","time","memory"];
-        //var QUANTITY_VALUES = [0.2,0.5,0.7];
-		
-		// var FEATURE_NAMES = ["Feature 1", "Feature 2", "Feature 3", "Feature 4", "Feature 5", "Feature 6"];
-		// var PREDICTIONS = [ 0,0.2,0.5,0.6,0.8,1,1];
-		// var GIVEN = [1, 0.99, 0.66, 0.5, 0.01, 0]; // no need in html
-		// var FORMALIZED_REQUIRES = [];
-		// var FORMALIZED_EXCLUDES = [];
-		
-	 
+		// Here we create the text with the data to be inserted in the html page (sample data)
+	    //CENTRAL_FEATURE = "t13";
+		//quantityCount = "1";
+		//FEATURE_NAMES = ["World","test"];
+		// PREDICTIONS = ["0.6","0.1"];
+		// FORMALIZED_REQUIRES = ["HelloWorld","Hello","test22"];
+		// FORMALIZED_EXCLUDES = ["t15","t16","test"];
+		// NFP = ["cost","security"];
+		// NFP_VALUES = ["0.425","0.5"];
+	
 		StringBuffer data = new StringBuffer(" CENTRAL_FEATURE = \"");
 		data.append(featureCenter);
+		data.append("\";\n quantityCount = \"");
+		data.append(quantityCount);
 		data.append("\";\n FEATURE_NAMES = [");
 		 if(relatedFeatures.size()>0){
 			for (String f : relatedFeatures) {
