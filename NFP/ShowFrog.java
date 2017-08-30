@@ -1,18 +1,11 @@
 package de.ovgu.featureide.visualisation;
 
 import java.io.File;
-import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.function.Consumer;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
-import org.eclipse.jface.action.Action;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTError;
 import org.eclipse.swt.browser.Browser;
@@ -25,20 +18,14 @@ import org.eclipse.swt.widgets.Shell;
 import de.ovgu.featureide.core.CorePlugin;
 import de.ovgu.featureide.core.IFeatureProject;
 import de.ovgu.featureide.fm.core.FeatureDependencies;
-import de.ovgu.featureide.fm.core.base.FeatureUtils;
 import de.ovgu.featureide.fm.core.base.IFeature;
 import de.ovgu.featureide.fm.core.base.IFeatureModel;
-import de.ovgu.featureide.fm.core.configuration.Configuration;
-import de.ovgu.featureide.fm.core.configuration.DefaultFormat;
-import de.ovgu.featureide.fm.core.configuration.SelectableFeature;
-import de.ovgu.featureide.fm.core.io.manager.ConfigurationManager;
-import de.ovgu.featureide.fm.core.io.manager.FileHandler;
 import de.ovgu.featureide.fm.ui.handlers.base.ASelectionHandler;
 
 /**
  * Show Feature Relations Graph
  * 
- * @author jabier.martinez
+ * @author Hari Kumar Gurudu
  */
 public class ShowFeatureRelationsGraphCommandHandler extends ASelectionHandler {
 	
@@ -60,8 +47,6 @@ public class ShowFeatureRelationsGraphCommandHandler extends ASelectionHandler {
 		shell.setLayout(new FillLayout(SWT.VERTICAL));
 		final org.eclipse.swt.widgets.List list = new org.eclipse.swt.widgets.List(shell, SWT.BORDER | SWT.V_SCROLL);
 
-		//List<String> featureList = ConfigAnalysisUtils.getNoCoreNoHiddenFeatures(featureProject);
-		
 		List<String> featureList = ConfigAnalysisUtils.computeWidgetFeatures(featureProject);
 		for (String f : featureList) {
 			list.add(f);
@@ -74,7 +59,6 @@ public class ShowFeatureRelationsGraphCommandHandler extends ASelectionHandler {
 				try {
 					showFrog(featureProject, list.getItem(selections[0]));
 				} catch (CoreException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -87,24 +71,6 @@ public class ShowFeatureRelationsGraphCommandHandler extends ASelectionHandler {
 		shell.open();
 
 	}
-
-	// P(i|currentI)
-	/*public static double getGivenOperation(boolean[][] matrix, int currentI, int i) {
-		double numerator = 0;
-		double denominator = 0;
-		for (int conf = 0; conf < matrix.length; conf++) {
-			if (matrix[conf][currentI]) {
-				denominator = denominator + 1.0;
-				if (matrix[conf][i]) {
-					numerator = numerator + 1.0;
-				}
-			}
-		}
-		if (denominator == 0) {
-			return 0;
-		}
-		return numerator / denominator;
-	}*/
 
 	/**
 	 * Show frog
@@ -130,46 +96,21 @@ public class ShowFeatureRelationsGraphCommandHandler extends ASelectionHandler {
 			formalizedExcludes.add(f.getName());
 		}
 
-		// Get all features in order ignoring the mandatory features
-		List<String> featureList = ConfigAnalysisUtils.getNoCoreNoHiddenFeatures(featureProject);
-		// Create the matrix configurations/features for the calculations
-		boolean[][] matrix = null;
-		try {
-			matrix = ConfigAnalysisUtils.getConfigsMatrix(featureProject, featureList);
-		} catch (CoreException e) {
-			e.printStackTrace();
-		}
-		
-		
-		Configuration configuration = new Configuration(featureModel);
-		
-		
-		List<SelectableFeature> featureArray = configuration.getFeatures();
-		
-		
-	    System.out.println(featureModel.getFeatures());
-		System.out.println(featureArray);
-		System.out.println("get Feature Model"+configuration.getFeatureModel());
-		System.out.println("get Feature Model"+configuration.getSelectedFeatureNames());
-		System.out.println("get Feature Model"+configuration.getSelectedFeatures());
-		//System.out.println("unselected Features from Feature Model"+configuration.getUnSelectedFeatures());
-		//System.out.println("undefined Features from Feature Model"+configuration.getUndefinedSelectedFeatures());
-		
 		Object[] FeaturePredicts = ConfigAnalysisUtils.computeFeaturePredictions(featureProject,fc);
+		@SuppressWarnings("unchecked")
 		List<String> relatedFeatures = (List<String>)FeaturePredicts[0];
+		@SuppressWarnings("unchecked")
 		List<String> relatedFeatureValues = (List<String>)FeaturePredicts[1];
 		System.out.println("Related features"+relatedFeatures);
 		System.out.println("Related Features predictions"+relatedFeatureValues);
 	
 		
 		Object[] NFPCenter = NFProps.computeNFP(featureProject,fc);
+		@SuppressWarnings("unchecked")
 		List<String> NFP = (List<String>)NFPCenter[0];
+		@SuppressWarnings("unchecked")
 		List<String> NFP_VALUES = (List<String>)NFPCenter[1];
-		int quantityCount = (int) NFPCenter[2];
-		System.out.println("NFP props"+NFP);
-		System.out.println("NFP values"+NFP_VALUES);
-		System.out.println("NFP values"+quantityCount);
-		
+		int quantityCount = (int) NFPCenter[2];		
 		NFProps.computeQuantity(featureProject);
 		
 		// Here we create the text with the data to be inserted in the html page (sample data)
@@ -246,11 +187,7 @@ public class ShowFeatureRelationsGraphCommandHandler extends ASelectionHandler {
 			data.setLength(data.length() - 1); // remove last comma
 		}
 		atLeastOne = false;
-	 
 		data.append("];\n");
-		
-		System.out.println(data.toString());
-
 		File fi = Utils.getFileFromPlugin("de.ovgu.featureide.visualisation", "template/featureRelations/page.html");
 		String html = Utils.getStringOfFile(fi);
 		html = html.replaceFirst("// DATA_HERE", data.toString());
