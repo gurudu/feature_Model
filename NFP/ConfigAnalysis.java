@@ -11,6 +11,7 @@ import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import de.ovgu.featureide.core.IFeatureProject;
+import de.ovgu.featureide.fm.core.FeatureDependencies;
 import de.ovgu.featureide.fm.core.base.FeatureUtils;
 import de.ovgu.featureide.fm.core.base.IFeature;
 import de.ovgu.featureide.fm.core.base.IFeatureModel;
@@ -37,7 +38,10 @@ public class ConfigAnalysisUtils {
 		IFeatureModel featureModel = featureProject.getFeatureModel();
 	    Configuration configuration = new Configuration(featureModel);
 		FileHandler.load(Paths.get(featureProject.getCurrentConfiguration().getLocationURI()), configuration, new DefaultFormat());
-		List<String> relatedFeatures = getRelatedFeatures(featureProject,fc);
+		Object[] relatedF = getRelatedFeatures(featureProject,fc);
+		List<String> relatedFeatures = (List<String>) relatedF[0];
+		List<String> formalizedRequires = (List<String>) relatedF[1];
+		List<String> formalizedExcludes = (List<String>) relatedF[2];
 	
 		for (IResource res : configsFolder.members()) {
 			if (res instanceof IFile) {
@@ -81,19 +85,32 @@ public class ConfigAnalysisUtils {
 			}
 		}
 	  }	
-		return new Object[]{ relatedFeatures,relatedFeatureValues };
+		return new Object[]{ relatedFeatures,relatedFeatureValues,formalizedRequires,formalizedExcludes };
 	}
 	
 	@SuppressWarnings("unchecked")
-	public static List<String> getRelatedFeatures(IFeatureProject featureProject,IFeature fc) {
+	public static Object[] getRelatedFeatures(IFeatureProject featureProject,IFeature fc) {
 		
 		IFeatureModel featureModel = featureProject.getFeatureModel();
 	    Configuration configuration = new Configuration(featureModel);
 	    FileHandler.load(Paths.get(featureProject.getCurrentConfiguration().getLocationURI()), configuration, new DefaultFormat());
 		
+	        // Get formalized constraints, implies and excludes
+	 		List<String> formalizedRequires = new ArrayList<String>();
+	 		List<String> formalizedExcludes = new ArrayList<String>();
+	 		FeatureDependencies fd = new FeatureDependencies(featureModel);
+	 		for (IFeature f : fd.always(fc)) {
+	 			formalizedRequires.add(f.getName());
+	 		}
+	 		for (IFeature f : fd.never(fc)) {
+	 			formalizedExcludes.add(f.getName());
+	 		}
+	 	
 		List<String> relatedFeatures = computeWidgetFeatures(featureProject);
 	    List<IFeature> childF = new ArrayList<>();
-		List<IFeature> inactivatedFeatures = configuration.getUnSelectedFeatures();
+		List<IFeature> HiddenF = configuration.getUnSelectedFeatures();
+		List<IFeature> coreF = FeatureUtils.getAnalyser(featureModel).getCoreFeatures();
+		
 			Iterable<IFeature> j = (Iterable<IFeature>) FeatureUtils.getChildren(fc).iterator();
 			if(FeatureUtils.hasChildren(fc)){	
 				for (; ((Iterator<IFeature>) j).hasNext();)
@@ -101,18 +118,36 @@ public class ConfigAnalysisUtils {
 					Object next = ((Iterator<IFeature>) j).next();
 					childF.add((IFeature) next);	
 		        }
-			}
-		childF.removeAll(inactivatedFeatures);
-		relatedFeatures.remove(fc.getName());
+			}	
 		for(IFeature f : childF){
 			relatedFeatures.add(f.getName());
 		}
+		for(String s : formalizedRequires){
+			if(!relatedFeatures.contains(s)){
+				relatedFeatures.add(s);
+			}
+			
+		}
+		for(String s : formalizedExcludes){
+			if(!relatedFeatures.contains(s)){
+				relatedFeatures.add(s);
+			}
+			
+		}
+		relatedFeatures.remove(fc.getName());
+		relatedFeatures.remove(FeatureUtils.getRoot(featureModel).getName());
+		for(IFeature f:HiddenF){
+			relatedFeatures.remove(f.getName());
+		}
 		
-		return relatedFeatures;
+		for(IFeature f:coreF){
+			relatedFeatures.remove(f.getName());
+		}
+		return new Object[]{relatedFeatures,formalizedRequires,formalizedExcludes};
 		
 	}
 	
-
+	
 	@SuppressWarnings("unchecked")
 	public static List<String> computeWidgetFeatures(IFeatureProject featureProject) {
 		IFeatureModel featureModel = featureProject.getFeatureModel();
