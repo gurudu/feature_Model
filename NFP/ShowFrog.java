@@ -85,25 +85,13 @@ public class ShowFeatureRelationsGraphCommandHandler extends ASelectionHandler {
 		IFeatureModel featureModel = featureProject.getFeatureModel();
 		IFeature fc = featureModel.getFeature(featureCenter);
 
-		// Get formalized constraints, implies and excludes
-		List<String> formalizedRequires = new ArrayList<String>();
-		List<String> formalizedExcludes = new ArrayList<String>();
-		FeatureDependencies fd = new FeatureDependencies(featureModel);
-		for (IFeature f : fd.always(fc)) {
-			formalizedRequires.add(f.getName());
-		}
-		for (IFeature f : fd.never(fc)) {
-			formalizedExcludes.add(f.getName());
-		}
-
 		Object[] FeaturePredicts = ConfigAnalysisUtils.computeFeaturePredictions(featureProject,fc);
 		@SuppressWarnings("unchecked")
 		List<String> relatedFeatures = (List<String>)FeaturePredicts[0];
 		@SuppressWarnings("unchecked")
 		List<String> relatedFeatureValues = (List<String>)FeaturePredicts[1];
-		System.out.println("Related features"+relatedFeatures);
-		System.out.println("Related Features predictions"+relatedFeatureValues);
-	
+		List<String> formalizedRequires = (List<String>)FeaturePredicts[2];
+		List<String> formalizedExcludes = (List<String>)FeaturePredicts[3];
 		
 		Object[] NFPCenter = NFProps.computeNFP(featureProject,fc);
 		@SuppressWarnings("unchecked")
@@ -191,7 +179,7 @@ public class ShowFeatureRelationsGraphCommandHandler extends ASelectionHandler {
 		File fi = Utils.getFileFromPlugin("de.ovgu.featureide.visualisation", "template/featureRelations/page.html");
 		String html = Utils.getStringOfFile(fi);
 		html = html.replaceFirst("// DATA_HERE", data.toString());
-
+       System.out.println("data id "+data.toString());
 		// Open the browser
 		Shell shell = new Shell(Display.getCurrent());
 		shell.setLayout(new FillLayout());
