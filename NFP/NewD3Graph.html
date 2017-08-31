@@ -25,43 +25,35 @@
 		var pi = Math.PI;
 
          var CENTRAL_FEATURE = "FeatureC";
-        // var FEATURE_NAMES = ["Feature1", "Feature2", "Feature3","Feature4","Feature5", "Feature6","F7","F8","F9","F10","F11","F12","F13","F14","F15"];
-        var FEATURE_NAMES = [];
-        var PREDICTIONS = [];
-         //var PREDICTIONS = [ 0,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.55,0.6,0.65,0.8,1,0.2,0.2];
+        var FEATURE_NAMES = ["Feature1", "Feature2", "Feature3","Feature4","Feature5", "Feature6","F7","F8","F9","F10","F11","F12","F13","F14","F15"];
+    
+        var PREDICTIONS = [ 0,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.55,0.6,0.65,0.8,1,0.2,0.2];
          var FORMALIZED_REQUIRES = ["Feature1"];
          var FORMALIZED_EXCLUDES = ["Feature4"];
-         var QUALITATIVE = [];
-         var QUANTITATIVE = [];
-         var QUANTITY_VALUES = [];
-         var QUALITY_VALUES = [];
-          var NFP_VALUES = QUALITY_VALUES.concat(QUANTITY_VALUES);
-          var NFP = QUALITATIVE.concat(QUANTITATIVE);
+        
+         var QUANTITY_VALUES = [0.2,0.5,0.7,0.9];
+         var QUALITY_VALUES = [0.3,0.5,0.8];
+          var NFP_VALUES = [];
+          var NFP = [];
           var GIVEN = [];
-                   
-         var qualityLength = QUALITATIVE.length;
-         var quantityLength = QUANTITATIVE.length;
+
+        var qualityCount = 0;
+		var quantityCount  =0;
          
          // Override values
          // DATA_HERE
-         
-		 var count = 0;
-		 NFP = NFP.filter(Boolean);
-		 PREDICTIONS = PREDICTIONS.map(Number);
-		for(var i = 0 ; i<NFP.length;i++){
-		  if(QUANTITATIVE.indexOf(NFP[i])>-1){
-		    count++;
-		  }
-		}
-		var quantityLength = count;		
-        var NFPLength =  NFP.length;
-        var qualityLength = NFPLength-count; 
         
+         NFP = NFP.filter(Boolean);
+		 PREDICTIONS = PREDICTIONS.map(Number);
+		 var NFPLength =  NFP.length;
         var FPLength = FEATURE_NAMES.length ;
+         quantityCount = parseInt(quantityCount);		
+        
+         qualityCount = NFPLength-quantityCount; 
         var endAngleFP = FPLength*(360/(FPLength+NFPLength));
-         var quantityAngle = quantityLength*(360/(FPLength+NFPLength));
+         var quantityAngle = quantityCount*(360/(FPLength+NFPLength));
          var endAngleQuantity = quantityAngle+endAngleFP 
-         var qualityAngle = qualityLength*(360/(FPLength+NFPLength));
+         var qualityAngle = qualityCount*(360/(FPLength+NFPLength));
          var endAngleQuality = qualityAngle+endAngleQuantity;
 
          var NODE_RADIUS = 10;
