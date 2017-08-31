@@ -23,22 +23,25 @@ public class NFProps {
 		List<String> NFPValues = new ArrayList<String>();
 		int quantityCount = 0;
 		HashMap<String, String> keyWithMinMax = computeQuantity(featureProject);
-		
-		String[] str = FeatureUtils.getDescription(fc).split("\\r?\\n");
-		for(String a : str){
-			String[] st = a.split(":");
-			
-			nfp.add(st[0]);
-			
-			if(isNumeric(st[1])) {
-				quantityCount++;
-				if(keyWithMinMax.containsKey(st[0])){
-					NFPValues.add(normalize(Double.parseDouble(st[1]), keyWithMinMax.get(st[0])));
+	      try {
+			String[] str = FeatureUtils.getDescription(fc).split("\\r?\\n");
+			for(String a : str){
+				String[] st = a.split(":");
+				
+				nfp.add(st[0]);
+				
+				if(isNumeric(st[1])) {
+					quantityCount++;
+					if(keyWithMinMax.containsKey(st[0])){
+						NFPValues.add(normalize(Double.parseDouble(st[1]), keyWithMinMax.get(st[0])));
+					}
+				}else{
+					NFPValues.add(getEquivalentNumber(st[1]));
 				}
-			}else{
-				NFPValues.add(getEquivalentNumber(st[1]));
 			}
-		}
+	   }catch(ArrayIndexOutOfBoundsException ignored) {
+
+       }
 		return new Object[]{nfp, NFPValues,quantityCount};
 	  }	
 	
