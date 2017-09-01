@@ -150,6 +150,8 @@ public class ConfigAnalysisUtils {
 			
 		}
 		
+	        formalizedRequires.addAll(formalizedRequires22);
+		formalizedExcludes.addAll(formalizedExcludes22);
 		for(String s : formalizedRequires){
 			if(!relatedFeatures.contains(s)){
 				relatedFeatures.add(s);
@@ -167,7 +169,6 @@ public class ConfigAnalysisUtils {
 			relatedFeatures.add(f.getName());
 		}
 		
-	
 		relatedFeatures.remove(fc.getName());
 		relatedFeatures.remove(FeatureUtils.getRoot(featureModel).getName());
 		for(IFeature f:HiddenF){
