@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.List;
 import org.eclipse.core.resources.IFile;
@@ -98,6 +99,10 @@ public class ConfigAnalysisUtils {
 	        // Get formalized constraints, implies and excludes
 	 		List<String> formalizedRequires = new ArrayList<String>();
 	 		List<String> formalizedExcludes = new ArrayList<String>();
+	 		List<String> formalizedRequires11 = new ArrayList<String>();
+	 		List<String> formalizedExcludes11 = new ArrayList<String>();
+	 		List<String> formalizedRequires22 = new ArrayList<String>();
+	 		List<String> formalizedExcludes22 = new ArrayList<String>();
 	 		FeatureDependencies fd = new FeatureDependencies(featureModel);
 	 		for (IFeature f : fd.always(fc)) {
 	 			formalizedRequires.add(f.getName());
@@ -118,10 +123,33 @@ public class ConfigAnalysisUtils {
 					Object next = ((Iterator<IFeature>) j).next();
 					childF.add((IFeature) next);	
 		        }
-			}	
-		for(IFeature f : childF){
-			relatedFeatures.add(f.getName());
+			}
+	    formalizedRequires11.addAll(formalizedRequires);
+	    formalizedExcludes11.addAll(formalizedExcludes);
+		for(IFeature f:HiddenF){
+			formalizedRequires11.remove(f.getName());
+			formalizedExcludes11.remove(f.getName());
 		}
+			
+		for(IFeature f:coreF){
+			formalizedRequires11.remove(f.getName());
+			formalizedExcludes11.remove(f.getName());
+		}
+	
+		try{
+		for(String s:formalizedRequires11 ) {
+        	IFeature fi = featureModel.getFeature(s);
+        	for (IFeature f : fd.always(fi)) {
+	 			formalizedRequires22.add(f.getName());
+	 		}
+	 		for (IFeature f : fd.never(fi)) {
+	 			formalizedExcludes22.add(f.getName());
+	 		}
+		}
+		}catch(ConcurrentModificationException ignored){
+			
+		}
+		
 		for(String s : formalizedRequires){
 			if(!relatedFeatures.contains(s)){
 				relatedFeatures.add(s);
@@ -134,6 +162,12 @@ public class ConfigAnalysisUtils {
 			}
 			
 		}
+		
+		for(IFeature f : childF){
+			relatedFeatures.add(f.getName());
+		}
+		
+	
 		relatedFeatures.remove(fc.getName());
 		relatedFeatures.remove(FeatureUtils.getRoot(featureModel).getName());
 		for(IFeature f:HiddenF){
@@ -142,6 +176,12 @@ public class ConfigAnalysisUtils {
 		
 		for(IFeature f:coreF){
 			relatedFeatures.remove(f.getName());
+		}
+		for(int i = 0 ; i< relatedFeatures.size()-1;i++){
+			if(relatedFeatures.get(i).equals(relatedFeatures.get(i+1))){
+				relatedFeatures.remove(relatedFeatures.get(i));
+			}
+			
 		}
 		return new Object[]{relatedFeatures,formalizedRequires,formalizedExcludes};
 		
