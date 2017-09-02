@@ -1,6 +1,9 @@
 package de.ovgu.featureide.visualisation;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import org.eclipse.core.resources.IProject;
@@ -28,11 +31,16 @@ import de.ovgu.featureide.fm.ui.handlers.base.ASelectionHandler;
  * @author Hari Kumar Gurudu
  */
 public class ShowFeatureRelationsGraphCommandHandler extends ASelectionHandler {
-	
+	public static int fpgInteractions = 0;
+	 static Thread thread;
+	public static String featureC = "";
+	public static IFeatureProject fProject;
+
 
 	@Override
 	protected void singleAction(Object element) {
 		IProject project = null;
+		 
 		if (!(element instanceof IProject)) {
 			if (element instanceof IAdaptable) {
 				project = ((IAdaptable) element).getAdapter(IProject.class);
@@ -41,7 +49,8 @@ public class ShowFeatureRelationsGraphCommandHandler extends ASelectionHandler {
 			project = (IProject) element;
 		}
 		final IFeatureProject featureProject = CorePlugin.getFeatureProject(project);
-		Shell shell = new Shell(Display.getCurrent());
+		
+		Shell shell = new Shell(Display.findDisplay(ShowFeatureRelationsGraphCommandHandler.thread));
 		shell.setText("Select feature");
 		shell.setSize(400, 200);
 		shell.setLayout(new FillLayout(SWT.VERTICAL));
@@ -55,10 +64,22 @@ public class ShowFeatureRelationsGraphCommandHandler extends ASelectionHandler {
 		list.addSelectionListener(new SelectionListener() {
 			
 			public void widgetSelected(SelectionEvent event) {
+				int count = 0;
 				int[] selections = list.getSelectionIndices();
 				try {
-					showFrog(featureProject, list.getItem(selections[0]));
+					 count = showFrog(featureProject, list.getItem(selections[0]));
+					
+					 PrintWriter writer = new PrintWriter("FPGInteractions.txt", "UTF-8");
+					 writer.println(count);
+					 writer.close();
+					 System.out.println(" Number of Feature properties graph interactions = "+count);
 				} catch (CoreException e) {
+					e.printStackTrace();
+				} catch (FileNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (UnsupportedEncodingException e) {
+					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -67,9 +88,9 @@ public class ShowFeatureRelationsGraphCommandHandler extends ASelectionHandler {
 
 			}
 		});
-
+		
 		shell.open();
-
+        
 	}
 
 	/**
@@ -77,30 +98,29 @@ public class ShowFeatureRelationsGraphCommandHandler extends ASelectionHandler {
 	 * 
 	 * @param featureProject
 	 * @param featureCenter
+	 * @return 
 	 * @throws CoreException 
 	 */
-	public static void showFrog(IFeatureProject featureProject, String featureCenter) throws CoreException {
+	
+	public static int showFrog(IFeatureProject featureProject, String featureCenter) throws CoreException {
 
-		// Get feature in the center
-		IFeatureModel featureModel = featureProject.getFeatureModel();
-		IFeature fc = featureModel.getFeature(featureCenter);
-
-		Object[] FeaturePredicts = ConfigAnalysisUtils.computeFeaturePredictions(featureProject,fc);
-		@SuppressWarnings("unchecked")
+		 //count interactions
+		fpgInteractions++;
+		 featureC = featureCenter;
+		fProject = featureProject;
+		//NonFunctionalPropertyGraphCommandHandler.showNFPGraph(featureProject, featureCenter);
+		Object[] FeaturePredicts = ConfigAnalysisUtils.computeFeaturePredictions(featureProject,featureCenter);
+		
 		List<String> relatedFeatures = (List<String>)FeaturePredicts[0];
-		@SuppressWarnings("unchecked")
 		List<String> relatedFeatureValues = (List<String>)FeaturePredicts[1];
 		List<String> formalizedRequires = (List<String>)FeaturePredicts[2];
 		List<String> formalizedExcludes = (List<String>)FeaturePredicts[3];
 		
-		Object[] NFPCenter = NFProps.computeNFP(featureProject,fc);
-		@SuppressWarnings("unchecked")
+		Object[] NFPCenter = NFProps.computeNFP(featureProject,featureCenter);
 		List<String> NFP = (List<String>)NFPCenter[0];
-		@SuppressWarnings("unchecked")
 		List<String> NFP_VALUES = (List<String>)NFPCenter[1];
 		int quantityCount = (int) NFPCenter[2];		
 		NFProps.computeQuantity(featureProject);
-		
 		// Here we create the text with the data to be inserted in the html page (sample data)
 	    //CENTRAL_FEATURE = "t13";
 		//quantityCount = "1";
@@ -181,18 +201,22 @@ public class ShowFeatureRelationsGraphCommandHandler extends ASelectionHandler {
 		html = html.replaceFirst("// DATA_HERE", data.toString());
        System.out.println("data id "+data.toString());
 		// Open the browser
+      
 		Shell shell = new Shell(Display.getCurrent());
 		shell.setLayout(new FillLayout());
-		shell.setSize(900, 800);
+		shell.setSize(1300, 1200);
 		shell.setText("Feature relations graph: " + featureCenter);
 		Browser browser;
 		try {
 			browser = new Browser(shell, SWT.NONE);
 		} catch (SWTError e) {
 			System.out.println("Could not instantiate Browser: " + e.getMessage());
-			return;
+			return fpgInteractions;
 		}
 		browser.setText(html);
 		shell.open();
+	
+		return fpgInteractions;
 	}
+
 }
