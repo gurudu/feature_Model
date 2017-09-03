@@ -27,19 +27,21 @@ import de.ovgu.featureide.fm.core.io.manager.FileHandler;
  */
 public class ConfigAnalysisUtils {
 
-	public static Object[] computeFeaturePredictions(IFeatureProject featureProject, IFeature fc) throws CoreException{
+	public static Object[] computeFeaturePredictions(IFeatureProject featureProject, String featureCenter) throws CoreException{
 		
 		List<String> PREDICTIONS = new ArrayList<String>();
 		List<String> FeatureProps = new ArrayList<String>();
 		List<String> FeatureValues = new ArrayList<String>();
 		List<String> relatedFeatureValues = new ArrayList<String>();
 		Collection<IFile> predicts = new ArrayList<IFile>();
-		
 	    IFolder configsFolder = featureProject.getConfigFolder();
+	    
 		IFeatureModel featureModel = featureProject.getFeatureModel();
+		//IFeature fc = featureModel.getFeature(featureCenter);
 	    Configuration configuration = new Configuration(featureModel);
 		FileHandler.load(Paths.get(featureProject.getCurrentConfiguration().getLocationURI()), configuration, new DefaultFormat());
-		Object[] relatedF = getRelatedFeatures(featureProject,fc);
+		Object[] relatedF = getRelatedFeatures(featureProject,featureCenter);
+		
 		List<String> relatedFeatures = (List<String>) relatedF[0];
 		List<String> formalizedRequires = (List<String>) relatedF[1];
 		List<String> formalizedExcludes = (List<String>) relatedF[2];
@@ -50,8 +52,7 @@ public class ConfigAnalysisUtils {
 					predicts.add((IFile) res);
 				}
 			}
-		}   
-		
+		}	
 		for (IFile predict : predicts) {
         	try {
 				java.io.InputStream is=predict.getContents();
@@ -85,24 +86,26 @@ public class ConfigAnalysisUtils {
 				relatedFeatureValues.add(FeatureValues.get(i));
 			}
 		}
-	  }	
-		return new Object[]{ relatedFeatures,relatedFeatureValues,formalizedRequires,formalizedExcludes };
+	  }
+	  return new Object[]{ relatedFeatures,relatedFeatureValues,formalizedRequires,formalizedExcludes };
+		
 	}
 	
 	@SuppressWarnings("unchecked")
-	public static Object[] getRelatedFeatures(IFeatureProject featureProject,IFeature fc) {
+	public static Object[] getRelatedFeatures(IFeatureProject featureProject,String featureCenter) {
 		
 		IFeatureModel featureModel = featureProject.getFeatureModel();
+		IFeature fc = featureModel.getFeature(featureCenter);
 	    Configuration configuration = new Configuration(featureModel);
 	    FileHandler.load(Paths.get(featureProject.getCurrentConfiguration().getLocationURI()), configuration, new DefaultFormat());
 		
 	        // Get formalized constraints, implies and excludes
 	 		List<String> formalizedRequires = new ArrayList<String>();
 	 		List<String> formalizedExcludes = new ArrayList<String>();
-	 		List<String> formalizedRequires11 = new ArrayList<String>();
+	 		/*List<String> formalizedRequires11 = new ArrayList<String>();
 	 		List<String> formalizedExcludes11 = new ArrayList<String>();
 	 		List<String> formalizedRequires22 = new ArrayList<String>();
-	 		List<String> formalizedExcludes22 = new ArrayList<String>();
+	 		List<String> formalizedExcludes22 = new ArrayList<String>();*/
 	 		FeatureDependencies fd = new FeatureDependencies(featureModel);
 	 		for (IFeature f : fd.always(fc)) {
 	 			formalizedRequires.add(f.getName());
@@ -112,6 +115,7 @@ public class ConfigAnalysisUtils {
 	 		}
 	 	
 		List<String> relatedFeatures = computeWidgetFeatures(featureProject);
+		  List<String> relatedFeatures11 = new ArrayList<>();
 	    List<IFeature> childF = new ArrayList<>();
 		List<IFeature> HiddenF = configuration.getUnSelectedFeatures();
 		List<IFeature> coreF = FeatureUtils.getAnalyser(featureModel).getCoreFeatures();
@@ -124,7 +128,7 @@ public class ConfigAnalysisUtils {
 					childF.add((IFeature) next);	
 		        }
 			}
-	    formalizedRequires11.addAll(formalizedRequires);
+	    /*formalizedRequires11.addAll(formalizedRequires);
 	    formalizedExcludes11.addAll(formalizedExcludes);
 		for(IFeature f:HiddenF){
 			formalizedRequires11.remove(f.getName());
@@ -149,7 +153,8 @@ public class ConfigAnalysisUtils {
 		}catch(ConcurrentModificationException ignored){
 			
 		}
-		
+		formalizedRequires.addAll(formalizedRequires22);
+		formalizedExcludes.addAll(formalizedExcludes22);*/
 		for(String s : formalizedRequires){
 			if(!relatedFeatures.contains(s)){
 				relatedFeatures.add(s);
@@ -167,7 +172,6 @@ public class ConfigAnalysisUtils {
 			relatedFeatures.add(f.getName());
 		}
 		
-	
 		relatedFeatures.remove(fc.getName());
 		relatedFeatures.remove(FeatureUtils.getRoot(featureModel).getName());
 		for(IFeature f:HiddenF){
@@ -183,6 +187,8 @@ public class ConfigAnalysisUtils {
 			}
 			
 		}
+		
+		
 		return new Object[]{relatedFeatures,formalizedRequires,formalizedExcludes};
 		
 	}
