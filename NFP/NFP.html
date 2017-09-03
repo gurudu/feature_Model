@@ -37,7 +37,7 @@
           var FEATURE_NAMES = [];
 
         var qualityCount = 0;
-		var quantityCount  =0;
+		var quantityCount  = 0;
          
          // Override values
          // DATA_HERE
@@ -268,25 +268,16 @@
 					    }else {
                          circleCenter = createCenter(102,nodes,25,0.5,0.5,-1,-1);
                         }
-					} else if ( val>0.85 && val<=1 ){
+					} else {
 				      if(nodes == FEATURE_NAMES) {
 					   circleCenter = createCenter(74,nodes,15,1,0.7,1,-1); 
 					  } else {
                          circleCenter = createCenter(74,nodes,25,0.5,0.5,-1,-1);
                         }
-					} else{
-						if(nodes == FEATURE_NAMES) {
-					   circleCenter = createCenter(0,nodes,15,1,0.7,1,-1); 
-					  } else {
-                         circleCenter = createCenter(0,nodes,25,0.5,0.5,-1,-1);
-                        }
-					}
+					} 
 			    if(nodes == FEATURE_NAMES) {
                     centerX= circleCenter[0]; 
                     centerY = circleCenter[1]; 
-                    if( centerX === 0 ){
-                    insertData(300,300,"white","white","start",null,null,12,8,'white');
-                    }
                     insertData(centerX,centerY,"white","black","start",nodes,nodes[i],12,8,'black');
                 } else {
                     centerX= circleCenter[0]; 
