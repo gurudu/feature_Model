@@ -61,11 +61,12 @@ public class NFProps {
 	   HashMap<String, List<Double>> nfPropsHash = new HashMap<>();
 	   
 	   List<Double> valueList = null;
-	   Object[] featurePredicts = ConfigAnalysisUtils.computeFeaturePredictions(featureProject,featureCenter);
+	   Object[] featurePredicts = ConfigAnalysisUtils.getRelatedFeatures(featureProject,featureCenter);
 	   List<String> relatedFeatures = (List<String>)featurePredicts[0];
 	   List<Double> featuresNFPValues = new ArrayList<>();
 	   List<String> featuresNFP = new ArrayList<>();
-	   System.out.println(relatedFeatures);
+	   relatedFeatures.add(featureCenter);
+	   System.out.println("relatedFeatures list"+relatedFeatures);
 	   for(String f : relatedFeatures){
 		   Object[] nfProperties = computeNFP(featureProject,f);
 		   List<String> nfp = (List<String>)nfProperties[0]; 
@@ -84,7 +85,7 @@ public class NFProps {
 				   nfpValues.add("2.0");
 			   }
 		   }
-		   System.out.println("");
+		   
 		   
 		   try{
 				 for(int i=0; i< nfp.size();i++){
