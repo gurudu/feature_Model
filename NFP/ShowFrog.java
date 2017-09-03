@@ -35,8 +35,6 @@ public class ShowFeatureRelationsGraphCommandHandler extends ASelectionHandler {
 	 static Thread thread;
 	public static String featureC = "";
 	public static IFeatureProject fProject;
-
-
 	@Override
 	protected void singleAction(Object element) {
 		IProject project = null;
